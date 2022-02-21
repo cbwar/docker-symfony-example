@@ -1,0 +1,42 @@
+version: '3'
+
+volumes:
+  db-data:
+
+services:
+
+  app:
+    build: ./docker/app
+    container_name: my-app
+    ports:
+      - "8000:8000"
+    volumes:
+      - ".:/sources"
+      - "~/.ssh:/home/dev/.ssh"
+
+  redis:
+    image: "redis:latest"
+
+  database:
+    image: "mariadb:10.6"
+    volumes:
+      - db-data:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=dbadmin
+
+  phpmyadmin:
+    image: phpmyadmin
+    ports:
+      - "8001:80"
+    environment:
+      - PMA_HOST=database
+      - PMA_PORT=3306
+      - PMA_USER=root
+      - PMA_PASSWORD=dbadmin
+
+  maildev:
+    image: maildev/maildev
+    command: bin/maildev --web 80 --smtp 25 --hide-extensions STARTTLS
+    ports:
+      - "8002:80"
+
